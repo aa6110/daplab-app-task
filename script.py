@@ -21,7 +21,7 @@ from muon import SingleDeviceMuonWithAuxAdam
 MODEL_NAME = "distilbert/distilbert-base-uncased"
 BATCH_SIZE = 32 # bert on sst2 paper
 ADAMW_LR = 5e-5 # what was used for bert on sst2 
-MUON_LR = 0.02 # starting point for the muon github page
+MUON_LR = 2e-3 # starting point for the muon github page
 EPS = 3 # fine-tuning, and also what was used on bert paper
 WEIGHT_DECAY = 0.01 # default of PyTorch's AdamW
 MUON = True # toggle displaying whether muon is on or not; AdamW is just being used in the background
