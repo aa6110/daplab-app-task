@@ -20,6 +20,7 @@ MODEL_NAME = "distilbert/distilbert-base-uncased"
 BATCH_SIZE = 32
 LR = 5e-5
 EPS = 3
+WEIGHT_DECAY = 0.01 # default of PyTorch's AdamW
 SEED = 42
 
 torch.manual_seed(SEED) # so that the only knob that is changing when testing agaist muon is the optimizer itself
@@ -60,7 +61,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 # setting up the optimizer
-optimizer = torch.optim.AdamW(model.parameters(), lr=LR)
+optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
 # training loop WARNING FOR TRAINING LOOP: metrics are logged while weights are changing. 
 def train_loop(dataloader, model, optimizer): # loss function is cross entropy, chosen automatically
@@ -137,6 +138,18 @@ with open(f"{artifact_dir}/results.json", "w") as f:
         "tr_loss": tr_loss,
         "tst_acc": tst_acc,
         "tst_loss": tst_loss
+    }, f)
+
+# storing the config in a separate json
+with open(f"{artifact_dir}/config.json", "w") as f:
+    json.dump({
+        "MODEL_NAME": MODEL_NAME,
+        "EPS": EPS,
+        "LR": LR,
+        "BATCH_SIZE": BATCH_SIZE,
+        "OPTIMIZER": "AdamW",
+        "WEIGHT_DECAY": WEIGHT_DECAY,
+        "SEED": SEED
     }, f)
 
 # graph 1: training accuracy

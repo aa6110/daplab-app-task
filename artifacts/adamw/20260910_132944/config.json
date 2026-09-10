@@ -1,0 +1,1 @@
+{"MODEL_NAME": "distilbert/distilbert-base-uncased", "EPS": 3, "LR": 5e-05, "BATCH_SIZE": 32, "OPTIMIZER": "AdamW", "WEIGHT_DECAY": 0.01, "SEED": 42}
