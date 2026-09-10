@@ -24,7 +24,7 @@ ADAMW_LR = 5e-5 # what was used for bert on sst2
 MUON_LR = 0.02 # starting point for the muon github page
 EPS = 3 # fine-tuning, and also what was used on bert paper
 WEIGHT_DECAY = 0.01 # default of PyTorch's AdamW
-MUON = False # toggle displaying whether muon is on or not; AdamW is just being used in the background
+MUON = True # toggle displaying whether muon is on or not; AdamW is just being used in the background
 SEED = 42 # eh, random ig
 
 torch.manual_seed(SEED) # so that the only knob that is changing when testing agaist muon is the optimizer itself
