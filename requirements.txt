@@ -3,4 +3,4 @@ transformers
 torch
 tqdm
 matplotlib
-git+https://github.com/KellerJordan/Muon
+git+https://github.com/KellerJordan/Muon@da8b040
