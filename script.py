@@ -15,13 +15,17 @@ from datetime import datetime
 
 import json
 
+from muon import SingleDeviceMuonWithAuxAdam
+
 # CONFIGS
 MODEL_NAME = "distilbert/distilbert-base-uncased"
-BATCH_SIZE = 32
-LR = 5e-5
-EPS = 3
+BATCH_SIZE = 32 # bert on sst2 paper
+ADAMW_LR = 5e-5 # what was used for bert on sst2 
+MUON_LR = 0.02 # starting point for the muon github page
+EPS = 3 # fine-tuning, and also what was used on bert paper
 WEIGHT_DECAY = 0.01 # default of PyTorch's AdamW
-SEED = 42
+MUON = False # toggle displaying whether muon is on or not; AdamW is just being used in the background
+SEED = 42 # eh, random ig
 
 torch.manual_seed(SEED) # so that the only knob that is changing when testing agaist muon is the optimizer itself
 
@@ -61,7 +65,20 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 # setting up the optimizer
-optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+optimizer = torch.optim.AdamW(model.parameters(), lr=ADAMW_LR, weight_decay=WEIGHT_DECAY)
+
+if MUON: # the muon side of things
+    # this part was basically copied from the muon example, just the calling of the parameters have been changed for distilbert
+    hidden_weights = [p for p in model.distilbert.transformer.parameters() if p.ndim >= 2]
+    hidden_gains_biases = [p for p in model.distilbert.transformer.parameters() if p.ndim < 2]
+    nonhidden_params = [*model.pre_classifier.parameters(), *model.classifier.parameters(), *model.distilbert.embeddings.parameters()]
+
+    param_groups = [
+        dict(params=hidden_weights, use_muon=True, lr=MUON_LR, weight_decay=WEIGHT_DECAY),
+        dict(params=hidden_gains_biases+nonhidden_params, use_muon=False, lr=ADAMW_LR, weight_decay=WEIGHT_DECAY, betas=(0.9, 0.999), eps=1e-08)
+    ] # need to change the betas and eps for AdamW because base code uses Keller Jordan's rather than AdamW defaults, which would not be testing purely Muon
+
+    optimizer = SingleDeviceMuonWithAuxAdam(param_groups)
 
 # training loop WARNING FOR TRAINING LOOP: metrics are logged while weights are changing. 
 def train_loop(dataloader, model, optimizer): # loss function is cross entropy, chosen automatically
@@ -130,6 +147,8 @@ for epoch in range(EPS):
 # making a specific folder in artifacts in adamw based on time
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 artifact_dir = f"artifacts/adamw/{timestamp}"
+if MUON :
+    artifact_dir = f"artifacts/muon/{timestamp}"
 os.makedirs(artifact_dir, exist_ok=True)
 
 with open(f"{artifact_dir}/results.json", "w") as f:
@@ -141,16 +160,29 @@ with open(f"{artifact_dir}/results.json", "w") as f:
     }, f)
 
 # storing the config in a separate json
-with open(f"{artifact_dir}/config.json", "w") as f:
-    json.dump({
-        "MODEL_NAME": MODEL_NAME,
-        "EPS": EPS,
-        "LR": LR,
-        "BATCH_SIZE": BATCH_SIZE,
-        "OPTIMIZER": "AdamW",
-        "WEIGHT_DECAY": WEIGHT_DECAY,
-        "SEED": SEED
-    }, f)
+if MUON :
+    with open(f"{artifact_dir}/config.json", "w") as f:
+        json.dump({
+            "MODEL_NAME": MODEL_NAME,
+            "EPS": EPS,
+            "MUON_LR": MUON_LR,
+            "ADAMW_LR": ADAMW_LR,
+            "BATCH_SIZE": BATCH_SIZE,
+            "OPTIMIZER": "SingleDeviceMuonWithAuxAdam",
+            "WEIGHT_DECAY": WEIGHT_DECAY,
+            "SEED": SEED
+        }, f)
+else:
+    with open(f"{artifact_dir}/config.json", "w") as f:
+        json.dump({
+            "MODEL_NAME": MODEL_NAME,
+            "EPS": EPS,
+            "ADAMW_LR": ADAMW_LR,
+            "BATCH_SIZE": BATCH_SIZE,
+            "OPTIMIZER": "AdamW",
+            "WEIGHT_DECAY": WEIGHT_DECAY,
+            "SEED": SEED
+        }, f)
 
 # graph 1: training accuracy
 plt.figure()
