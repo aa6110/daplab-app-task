@@ -87,6 +87,7 @@ def pertubation_sharpness(model, params, sharpness_config, dataloader, device, s
         stats[sigma] = {
             "mean": torch.tensor(perturbed_losses).mean().item(),
             "std": torch.tensor(perturbed_losses).std().item(),
+            "losses": perturbed_losses
         }
 
     return stats
@@ -131,4 +132,4 @@ if __name__ == "__main__":
         "nonhidden_stats_muon": nonhidden_stats_muon,
     }
     with open(os.path.join(sharpness_config["output_dir"], "results.json"), "w") as f:
-        json.dump(all_stats, f, indent=4)
+        json.dump(all_stats, f)
