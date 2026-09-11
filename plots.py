@@ -10,8 +10,13 @@ import os
 def plot_pte(): # periodic test eval
     pass
 
-def plot_re(): # rotational equilibrium or relative update
-    pass
+def plot_re(runs_data, plots_config, smooth_flag): # rotational equilibrium or relative update
+    # this one requires a bit of additional computation to determine the rotational equilibrium or relative update
+    for results, config, label in runs_data:
+        results["train_hidden_re"] = np.array(results["train_hidden_update_norms"]) / np.array(results["train_hidden_weight_norms"])
+        results["train_nonhidden_re"] = np.array(results["train_nonhidden_update_norms"]) / np.array(results["train_nonhidden_weight_norms"])
+
+    plot_two_panels(runs_data, plots_config, "train_hidden_re", "train_nonhidden_re", "Rotational Equilibrium", "rotational_equilibrium.png", "Steps", "RE", smooth_flag)
 
 def smooth(data, w):
     if w <= 1:
@@ -108,3 +113,4 @@ if __name__ == "__main__":
     plot_two_panels(runs_data, plot_config, "train_hidden_grad_norms", "train_nonhidden_grad_norms", "Gradient Norms", "gradient_norms.png", "Steps", "Norm", smooth_flag=True)
     plot_two_panels(runs_data, plot_config, "train_hidden_update_norms", "train_nonhidden_update_norms", "Update Norms", "update_norms.png", "Steps", "Norm", smooth_flag=True)
     plot_two_panels(runs_data, plot_config, "train_hidden_weight_norms", "train_nonhidden_weight_norms", "Weight Norms", "weight_norms.png", "Steps", "Norm", smooth_flag=False)
+    plot_two_panels(runs_data, plot_config, "train_hidden_re", "train_nonhidden_re", "Rotational Equilibrium", "rotational_equilibrium.png", "Steps", "RE", smooth_flag=True)
