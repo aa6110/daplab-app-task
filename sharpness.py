@@ -100,26 +100,25 @@ def interpolate(model_adamw, model_muon, train_loader, test_loader, device, ts):
     snapshot_params_adamw = [p.clone() for p in params_adamw]
     snapshot_params_muon = [p.clone() for p in params_muon]
 
-    stats = {}
+    train_loss = []
+    test_loss = []
 
     for t in ts:
-        train_loss = []
-        test_loss = []
         with torch.no_grad():
-            for p_adamw, snapshot_p_adamw in zip(params_adamw, snapshot_params_adamw):
-                p_adamw.copy_(snapshot_p_adamw * (1 - t) + snapshot_p_adamw * t)
+            for p_adamw, snapshot_p_adamw, snapshot_p_muon in zip(params_adamw, snapshot_params_adamw, snapshot_params_muon):
+                p_adamw.copy_(snapshot_p_adamw * (1 - t) + snapshot_p_muon * t)
 
             # recording loss
             train_loss_adamw = loss_fn(model_adamw, train_loader, device)
             test_loss_adamw = loss_fn(model_adamw, test_loader, device)
 
-            train_loss.append(train_loss_adamw.item())
-            test_loss.append(test_loss_adamw.item())
+            train_loss.append(train_loss_adamw)
+            test_loss.append(test_loss_adamw)
 
             for p_adamw, snapshot_p_adamw in zip(params_adamw, snapshot_params_adamw):
                 p_adamw.copy_(snapshot_p_adamw)
 
-    stats[t] = {
+    stats = {
         "t": ts,
         "train_loss": torch.tensor(train_loss).mean().item(),
         "test_loss": torch.tensor(test_loss).mean().item()
