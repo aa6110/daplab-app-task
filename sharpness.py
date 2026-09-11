@@ -108,3 +108,10 @@ if __name__ == "__main__":
 
     hidden_params_adamw, nonhidden_params_adamw = split_params(model_adamw)
     hidden_params_muon, nonhidden_params_muon = split_params(model_muon)
+
+    # compute sharpness for both models
+    hidden_stats_adamw = pertubation_sharpness(model_adamw, hidden_params_adamw, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    nonhidden_stats_adamw = pertubation_sharpness(model_adamw, nonhidden_params_adamw, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+
+    hidden_stats_muon = pertubation_sharpness(model_muon, hidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    nonhidden_stats_muon = pertubation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
