@@ -1,1 +1,0 @@
-{"MODEL_NAME": "distilbert/distilbert-base-uncased", "EPS": 3, "MUON_LR": 0.02, "ADAMW_LR": 5e-05, "BATCH_SIZE": 32, "OPTIMIZER": "SingleDeviceMuonWithAuxAdam", "WEIGHT_DECAY": 0.01, "SEED": 42}
