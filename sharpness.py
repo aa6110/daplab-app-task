@@ -119,9 +119,9 @@ def interpolate(model_adamw, model_muon, train_loader, test_loader, device, ts):
                 p_adamw.copy_(snapshot_p_adamw)
 
     stats = {
-        "t": ts,
-        "train_loss": torch.tensor(train_loss).mean().item(),
-        "test_loss": torch.tensor(test_loss).mean().item()
+        "t": ts.tolist(), # needs .tolist() because it is being constructed from np.linspace()
+        "train_loss": train_loss,
+        "test_loss": test_loss
     }
 
     return stats
