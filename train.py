@@ -86,6 +86,8 @@ def train_loop(train_dataloader, eval_dataloader, model, hidden_weights, nonhidd
     nonhidden_update_norms = []
     hidden_pretrain_distances = []
     nonhidden_pretrain_distances = []
+    hidden_snapshot_norms = []  
+    nonhidden_snapshot_norms = []  
     eval_freq_losses = []
     eval_freq_accs = []
     global_steps = []
@@ -101,6 +103,10 @@ def train_loop(train_dataloader, eval_dataloader, model, hidden_weights, nonhidd
         
         with torch.no_grad():
             hidden_snapshot_params, nonhidden_snapshot_params = [p.clone() for p in hidden_weights], [p.clone() for p in nonhidden_weights] # needed for update norm
+            hidden_snapshot_norm, nonhidden_snapshot_norm = group_norm(hidden_snapshot_params), group_norm(nonhidden_snapshot_params)
+
+        hidden_snapshot_norms.append(hidden_snapshot_norm)
+        nonhidden_snapshot_norms.append(nonhidden_snapshot_norm)
 
         optimizer.step() # update model parameters
 
@@ -136,7 +142,7 @@ def train_loop(train_dataloader, eval_dataloader, model, hidden_weights, nonhidd
     correct /= size
     print(f"Train Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {train_loss:>8f} \n")
 
-    return correct, train_loss, losses, hidden_grad_norms, nonhidden_grad_norms, hidden_update_norms, nonhidden_update_norms, hidden_pretrain_distances, nonhidden_pretrain_distances, eval_freq_accs, eval_freq_losses, global_steps
+    return correct, train_loss, losses, hidden_grad_norms, nonhidden_grad_norms, hidden_update_norms, nonhidden_update_norms, hidden_pretrain_distances, nonhidden_pretrain_distances, hidden_snapshot_norms, nonhidden_snapshot_norms, eval_freq_accs, eval_freq_losses, global_steps
 
 # test loop. similar to train loop but with some changes
 def test_loop(dataloader, model, device, verbose=True): 
@@ -214,6 +220,8 @@ if __name__ == "__main__":
     tr_nonhidden_pretrain_distances = []
     tr_hidden_update_norms = []
     tr_nonhidden_update_norms = []
+    tr_hidden_snapshot_norms = []
+    tr_nonhidden_snapshot_norms = []
 
     global_steps = []
     tst_periodic_accs = []
@@ -226,7 +234,7 @@ if __name__ == "__main__":
 
     for epoch in range(config["epochs"]):
         print(f"Epoch {epoch+1}\n-------------------------------")
-        train_acc, train_loss_epoch, train_loss_step, hidden_grad_norms, nonhidden_grad_norms, hidden_update_norms, nonhidden_update_norms, hidden_pretrain_distances, nonhidden_pretrain_distances, eval_freq_accs, eval_freq_losses, steps = train_loop(train_dataloader, test_dataloader, model, hidden_weights, nonhidden_weights, hidden_pretrain_weights, nonhidden_pretrain_weights, optimizer, epoch, config["eval_freq"], device)
+        train_acc, train_loss_epoch, train_loss_step, hidden_grad_norms, nonhidden_grad_norms, hidden_update_norms, nonhidden_update_norms, hidden_pretrain_distances, nonhidden_pretrain_distances, hidden_snapshot_norms, nonhidden_snapshot_norms, eval_freq_accs, eval_freq_losses, steps = train_loop(train_dataloader, test_dataloader, model, hidden_weights, nonhidden_weights, hidden_pretrain_weights, nonhidden_pretrain_weights, optimizer, epoch, config["eval_freq"], device)
         tr_acc.append(train_acc)
         tr_loss_epoch.append(train_loss_epoch)
         tr_loss_step.extend(train_loss_step)
@@ -236,6 +244,8 @@ if __name__ == "__main__":
         tr_nonhidden_update_norms.extend(nonhidden_update_norms)
         tr_hidden_pretrain_distances.extend(hidden_pretrain_distances)
         tr_nonhidden_pretrain_distances.extend(nonhidden_pretrain_distances)
+        tr_hidden_snapshot_norms.extend(hidden_snapshot_norms)
+        tr_nonhidden_snapshot_norms.extend(nonhidden_snapshot_norms)
         tst_periodic_accs.extend(eval_freq_accs)
         tst_periodic_losses.extend(eval_freq_losses)
         global_steps.extend(steps)
@@ -255,6 +265,8 @@ if __name__ == "__main__":
         "train_nonhidden_update_norms": tr_nonhidden_update_norms,
         "train_hidden_pretrain_distances": tr_hidden_pretrain_distances,
         "train_nonhidden_pretrain_distances": tr_nonhidden_pretrain_distances,
+        "train_hidden_snapshot_norms": tr_hidden_snapshot_norms,
+        "train_nonhidden_snapshot_norms": tr_nonhidden_snapshot_norms,
         "test_periodic_accuracy": tst_periodic_accs,
         "test_periodic_loss": tst_periodic_losses,
         "test_accuracy": tst_acc,
