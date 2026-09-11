@@ -108,7 +108,7 @@ if __name__ == "__main__":
         "seed": 42, # random number for reproducibility, what was used in training
         "model_dir_adamw": "artifacts/adamw/20260911_110518/model",
         "model_dir_muon": "artifacts/muon/20260911_134357/model",
-        "sigmas": [0.001, 0.005, 0.01, 0.02, 0.05], # suggested by Claude...
+        "sigmas": [0.001, 0.005, 0.01, 0.02, 0.05], # suggested by Claude, i didn't really know what values to put
         "n_draws": 10, # arbitrarily chosen; more draws means better std
         "output_dir": "sharpness" # folder to save sharpness results
     }
@@ -126,21 +126,21 @@ if __name__ == "__main__":
     # compute sharpness for both models
     hidden_stats_adamw = pertubation_sharpness(model_adamw, hidden_params_adamw, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
     nonhidden_stats_adamw = pertubation_sharpness(model_adamw, nonhidden_params_adamw, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    stats_adamw = pertubation_sharpness(model_adamw, list(model_adamw.parameters()), sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    all_stats_adamw = pertubation_sharpness(model_adamw, list(model_adamw.parameters()), sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
     hidden_stats_muon = pertubation_sharpness(model_muon, hidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
     nonhidden_stats_muon = pertubation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    stats_muon = pertubation_sharpness(model_muon, list(model_muon.parameters()), sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    all_stats_muon = pertubation_sharpness(model_muon, list(model_muon.parameters()), sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
     # saving the results as one json for plots.py compatibility
     os.makedirs(sharpness_config["output_dir"], exist_ok=True)
     all_stats = {
         "hidden_stats_adamw": hidden_stats_adamw,
         "nonhidden_stats_adamw": nonhidden_stats_adamw,
-        "stats_adamw": stats_adamw,
+        "all_stats_adamw": all_stats_adamw,
         "hidden_stats_muon": hidden_stats_muon,
         "nonhidden_stats_muon": nonhidden_stats_muon,
-        "stats_muon": stats_muon
+        "all_stats_muon": all_stats_muon
     }
     with open(os.path.join(sharpness_config["output_dir"], "results.json"), "w") as f:
         json.dump(all_stats, f)
