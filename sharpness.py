@@ -10,6 +10,8 @@ import torch
 
 from train import split_params
 
+import os
+
 # this function wont have too many comments because it's similar to load_data() in train.py
 def load_eval_set(sharpness_config):
     ds = load_dataset("stanfordnlp/sst2")
@@ -96,7 +98,8 @@ if __name__ == "__main__":
         "model_dir_adamw": "artifacts/adamw/20260911_110518/model",
         "model_dir_muon": "artifacts/muon/20260911_134357/model",
         "sigmas": [0.001, 0.005, 0.01, 0.02, 0.05], # suggested by Claude...
-        "n_draws": 10 # arbitrarily chosen
+        "n_draws": 10, # arbitrarily chosen
+        "output_dir": "sharpness" # folder to save sharpness results
     }
 
     eval_dataloader = load_eval_set(sharpness_config)
@@ -115,3 +118,10 @@ if __name__ == "__main__":
 
     hidden_stats_muon = pertubation_sharpness(model_muon, hidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
     nonhidden_stats_muon = pertubation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+
+    # saving the results
+    os.makedirs(sharpness_config["output_dir"], exist_ok=True)
+    torch.save(hidden_stats_adamw, os.path.join(sharpness_config["output_dir"], "hidden_stats_adamw.pt"))
+    torch.save(nonhidden_stats_adamw, os.path.join(sharpness_config["output_dir"], "nonhidden_stats_adamw.pt"))
+    torch.save(hidden_stats_muon, os.path.join(sharpness_config["output_dir"], "hidden_stats_muon.pt"))
+    torch.save(nonhidden_stats_muon, os.path.join(sharpness_config["output_dir"], "nonhidden_stats_muon.pt"))
