@@ -144,7 +144,7 @@ if __name__ == "__main__":
         "ts": np.linspace(-0.5, 1.5, 25) # trying to see both sides of the basins from a side view
     }
 
-    train_eval_dataloader = load_eval_set(sharpness_config, "train")
+    train_eval_loader = load_eval_set(sharpness_config, "train")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -155,17 +155,17 @@ if __name__ == "__main__":
     hidden_params_muon, nonhidden_params_muon = split_params(model_muon)
 
     # compute sharpness for both models
-    hidden_stats_adamw = pertubation_sharpness(model_adamw, hidden_params_adamw, sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    nonhidden_stats_adamw = pertubation_sharpness(model_adamw, nonhidden_params_adamw, sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    all_stats_adamw = pertubation_sharpness(model_adamw, list(model_adamw.parameters()), sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    hidden_stats_adamw = pertubation_sharpness(model_adamw, hidden_params_adamw, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    nonhidden_stats_adamw = pertubation_sharpness(model_adamw, nonhidden_params_adamw, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    all_stats_adamw = pertubation_sharpness(model_adamw, list(model_adamw.parameters()), sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
-    hidden_stats_muon = pertubation_sharpness(model_muon, hidden_params_muon, sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    nonhidden_stats_muon = pertubation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    all_stats_muon = pertubation_sharpness(model_muon, list(model_muon.parameters()), sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    hidden_stats_muon = pertubation_sharpness(model_muon, hidden_params_muon, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    nonhidden_stats_muon = pertubation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    all_stats_muon = pertubation_sharpness(model_muon, list(model_muon.parameters()), sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
     # interpolate (side view of landscape)
     test_eval_loader = load_eval_set(sharpness_config, "validation")
-    interpolate_stats = interpolate(model_adamw, model_muon, test_eval_loader, sharpness_config["ts"], device)
+    interpolate_stats = interpolate(model_adamw, model_muon, train_eval_loader, test_eval_loader,  device, sharpness_config["ts"])
 
     # saving the results as one json for plots.py compatibility
     os.makedirs(sharpness_config["output_dir"], exist_ok=True)
