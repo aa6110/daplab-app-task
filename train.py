@@ -190,8 +190,8 @@ if __name__ == "__main__":
         "adamw_eps": 1e-8, # default epsilon value for AdamW optimizer
         "adamw_betas": (0.9, 0.999), # default beta values for AdamW optimizer 
         "adamw_wd": 0.01, # default weight decay for AdamW optimizer
-        "muon": False, # toggle for incorporating muon for 2d optimization
-        "muon_lr": 2e-5, # sweeped and changed from the initial value used in the Muon blog
+        "muon": True, # toggle for incorporating muon for 2d optimization
+        "muon_lr": 2e-1, # sweeped and changed from the initial value used in the Muon blog
         "muon_momentum": 0.95, # default momentum value for Muon optimizer
         "muon_wd": 0.01, # default weight decay for Muon optimizer
         "epochs": 3, # fine-tuning, and also what was used on bert paper
@@ -258,14 +258,14 @@ if __name__ == "__main__":
     results = {
         "train_accuracy": tr_acc,
         "train_loss_epoch": tr_loss_epoch,
-        "train_loss_step": tr_loss_step,
-        "train_hidden_grad_norms": tr_hidden_grad_norms,
-        "train_nonhidden_grad_norms": tr_nonhidden_grad_norms,
-        "train_hidden_update_norms": tr_hidden_update_norms,
-        "train_nonhidden_update_norms": tr_nonhidden_update_norms,
-        "train_hidden_pretrain_distances": tr_hidden_pretrain_distances,
-        "train_nonhidden_pretrain_distances": tr_nonhidden_pretrain_distances,
-        "train_hidden_weight_norms": tr_hidden_weight_norms,
+        "train_loss_step": tr_loss_step, # done
+        "train_hidden_grad_norms": tr_hidden_grad_norms, # done
+        "train_nonhidden_grad_norms": tr_nonhidden_grad_norms, # done
+        "train_hidden_update_norms": tr_hidden_update_norms, # done
+        "train_nonhidden_update_norms": tr_nonhidden_update_norms, # done
+        "train_hidden_pretrain_distances": tr_hidden_pretrain_distances, # done
+        "train_nonhidden_pretrain_distances": tr_nonhidden_pretrain_distances, # done
+        "train_hidden_weight_norms": tr_hidden_weight_norms, # done
         "train_nonhidden_weight_norms": tr_nonhidden_weight_norms,
         "test_periodic_accuracy": tst_periodic_accs,
         "test_periodic_loss": tst_periodic_losses,
