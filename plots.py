@@ -113,4 +113,4 @@ if __name__ == "__main__":
     plot_two_panels(runs_data, plot_config, "train_hidden_grad_norms", "train_nonhidden_grad_norms", "Gradient Norms", "gradient_norms.png", "Steps", "Norm", smooth_flag=True)
     plot_two_panels(runs_data, plot_config, "train_hidden_update_norms", "train_nonhidden_update_norms", "Update Norms", "update_norms.png", "Steps", "Norm", smooth_flag=True)
     plot_two_panels(runs_data, plot_config, "train_hidden_weight_norms", "train_nonhidden_weight_norms", "Weight Norms", "weight_norms.png", "Steps", "Norm", smooth_flag=False)
-    plot_two_panels(runs_data, plot_config, "train_hidden_re", "train_nonhidden_re", "Rotational Equilibrium", "rotational_equilibrium.png", "Steps", "RE", smooth_flag=True)
+    plot_re(runs_data, plot_config, smooth_flag=True)
