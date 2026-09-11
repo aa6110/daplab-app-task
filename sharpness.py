@@ -17,12 +17,11 @@ from tqdm import tqdm
 import numpy as np
 
 # this function wont have too many comments because it's similar to load_data() in train.py
-def load_eval_set(sharpness_config, set):
+def load_eval_set(sharpness_config, split):
     ds = load_dataset("stanfordnlp/sst2")
-    if set == "train" :
-        eval_set = ds[set].shuffle(seed=sharpness_config["seed"]).select(range(sharpness_config["eval_set_size"])) # it's important to do for train because we are measuring the sharpness of the "valley" in the training landscape
-    else :
-        eval_set = ds[set].shuffle(seed=sharpness_config["seed"])
+    eval_set = ds[split].shuffle(seed=sharpness_config["seed"])
+    if split == "train" : # only for train
+        eval_set = eval_set.select(range(sharpness_config["eval_set_size"])) # it's important to do for train because we are measuring the sharpness of the "valley" in the training landscape
 
     tokenizer = AutoTokenizer.from_pretrained(sharpness_config["model_name"])
 
@@ -165,7 +164,7 @@ if __name__ == "__main__":
     all_stats_muon = pertubation_sharpness(model_muon, list(model_muon.parameters()), sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
     # interpolate (side view of landscape)
-    test_eval_loader = load_eval_set(sharpness_config, "test")
+    test_eval_loader = load_eval_set(sharpness_config, "validation")
 
     # saving the results as one json for plots.py compatibility
     os.makedirs(sharpness_config["output_dir"], exist_ok=True)
