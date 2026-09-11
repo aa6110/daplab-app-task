@@ -94,57 +94,36 @@ def summary_table(runs_data, plot_config):
     # need best report vals
     for results, config, label in runs_data:
         # getting best periodic test acc and step at best
-        best_periodic_test_acc = max(results["test_accuracy"]) if results["test_accuracy"] else None
-        step_at_best_periodic_test_acc = results["test_accuracy"].index(best_periodic_test_acc) if best_periodic_test_acc is not None else None
-        table_data.append({
-            "Label": label,
-            "Best Periodic Test Accuracy": best_periodic_test_acc,
-            "Step at Best Periodic Test Accuracy": step_at_best_periodic_test_acc
-        })
+        best_periodic_test_acc = max(results["test_periodic_accuracy"]) if results["test_periodic_accuracy"] else None
+        step_at_best_periodic_test_acc = results["test_periodic_accuracy"][best_periodic_test_acc] if best_periodic_test_acc is not None else None
 
         # getting the lowest periodic test loss and step at lowest
-        lowest_periodic_test_loss = min(results["test_loss"]) if results["test_loss"] else None
-        step_at_lowest_periodic_test_loss = results["test_loss"].index(lowest_periodic_test_loss) if lowest_periodic_test_loss is not None else None
-        table_data.append({
-            "Label": label,
-            "Lowest Periodic Test Loss": lowest_periodic_test_loss,
-            "Step at Lowest Periodic Test Loss": step_at_lowest_periodic_test_loss
-        })
+        lowest_periodic_test_loss = min(results["test_periodic_loss"]) if results["test_periodic_loss"] else None
+        step_at_lowest_periodic_test_loss = results["test_periodic_loss"][lowest_periodic_test_loss] if lowest_periodic_test_loss is not None else None   
 
         # getting final test accuracy and step at final
         final_periodic_test_acc = results["test_accuracy"][-1] if results["test_accuracy"] else None
-        step_at_final_periodic_test_acc = results["test_accuracy"].index(final_periodic_test_acc) if final_periodic_test_acc is not None else None
-        table_data.append({
-            "Label": label,
-            "Final Periodic Test Accuracy": final_periodic_test_acc,
-            "Step at Final Periodic Test Accuracy": step_at_final_periodic_test_acc
-        })
-
+        
         # final train acc
         final_periodic_train_acc = results["train_accuracy"][-1] if results["train_accuracy"] else None
-        step_at_final_periodic_train_acc = results["train_accuracy"].index(final_periodic_train_acc) if final_periodic_train_acc is not None else None
-        table_data.append({
-            "Label": label,
-            "Final Periodic Train Accuracy": final_periodic_train_acc,
-            "Step at Final Periodic Train Accuracy": step_at_final_periodic_train_acc
-        })
 
         # final hidden distance from pretrained
         final_hidden_pretrain_dist = results["train_hidden_pretrain_distances"][-1] if results["train_hidden_pretrain_distances"] else None
-        step_at_final_hidden_pretrain_dist = results["train_hidden_pretrain_distances"].index(final_hidden_pretrain_dist) if final_hidden_pretrain_dist is not None else None
-        table_data.append({
-            "Label": label,
-            "Final Hidden Pretrain Distance": final_hidden_pretrain_dist,
-            "Step at Final Hidden Pretrain Distance": step_at_final_hidden_pretrain_dist
-        })
 
         # final hidden weight norm
         final_hidden_weight_norm = results["train_hidden_weight_norms"][-1] if results["train_hidden_weight_norms"] else None
-        step_at_final_hidden_weight_norm = results["train_hidden_weight_norms"].index(final_hidden_weight_norm) if final_hidden_weight_norm is not None else None
+
+        # appending the information
         table_data.append({
             "Label": label,
-            "Final Hidden Weight Norm": final_hidden_weight_norm,
-            "Step at Final Hidden Weight Norm": step_at_final_hidden_weight_norm
+            "Best Periodic Test Accuracy": best_periodic_test_acc,
+            "Step at Best Periodic Test Accuracy": step_at_best_periodic_test_acc,
+            "Lowest Periodic Test Loss": lowest_periodic_test_loss,
+            "Step at Lowest Periodic Test Loss": step_at_lowest_periodic_test_loss,
+            "Final Periodic Test Accuracy": final_periodic_test_acc,
+            "Final Periodic Train Accuracy": final_periodic_train_acc,
+            "Final Hidden Pretrain Distance": final_hidden_pretrain_dist, 
+            "Final Hidden Weight Norm": final_hidden_weight_norm
         })
 
     table_str = tabulate.tabulate(table_data, headers="keys", tablefmt="github")
