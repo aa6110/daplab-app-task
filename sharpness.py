@@ -1,0 +1,110 @@
+from datasets import load_dataset
+
+from transformers import AutoTokenizer
+from transformers import DataCollatorWithPadding
+from torch.utils.data import DataLoader
+
+from transformers import AutoModelForSequenceClassification
+
+import torch
+
+from train import split_params
+
+# this function wont have too many comments because it's similar to load_data() in train.py
+def load_eval_set(sharpness_config):
+    ds = load_dataset("stanfordnlp/sst2")
+    eval_set = ds["train"].shuffle(seed=sharpness_config["seed"]).select(range(sharpness_config["eval_set_size"])) # it's important to do for train because we are measuring the sharpness of the "valley" in the training landscape
+
+    tokenizer = AutoTokenizer.from_pretrained(sharpness_config["model_name"])
+
+    def tokenize(examples):
+        return tokenizer(examples["sentence"], truncation=True)
+
+    eval_set = eval_set.map(tokenize, batched=True)
+    eval_set = eval_set.remove_columns(["idx", "sentence", "token_type_ids"])
+
+    # data collator 
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer) # dynamic padding
+
+    eval_dataloader = DataLoader(eval_set, batch_size=sharpness_config["batch_size"], shuffle=False, collate_fn=data_collator)
+
+    return eval_dataloader
+
+def load_model(model_dir, device):
+    model = AutoModelForSequenceClassification.from_pretrained(model_dir)
+    model.to(device)
+    model.eval()
+    return model
+
+# there wont be too many comments here either since this is about the same as test_loop() in train.py
+def loss_fn(model, dataloader, device):
+    num_batches = len(dataloader)
+    losses = 0
+
+    with torch.no_grad():
+        for batch in dataloader:
+            batch = {k: v.to(device) for k, v in batch.items()}
+            pred = model(**batch)
+            loss = pred.loss
+
+            losses += loss.item()
+            
+    return losses / num_batches
+
+# this function is to see the areas around the two models in weight space for their losses to identify sharpness levels
+def pertubation_sharpness(model, params, sharpness_config, dataloader, device, sigmas, n_draws):
+    base_loss = loss_fn(model, dataloader, device)
+
+    snapshot_params = [p.clone() for p in params]
+
+    stats = {}
+
+    for sigma in sigmas:
+        perturbed_losses = []
+        for i in range(n_draws):
+            torch.manual_seed(sharpness_config["seed"] + i) # this is adding randomization and would be reproducible since in a loop
+
+            for p in params: # for every hidden / nonhidden parameter
+                with torch.no_grad():
+                    # steps to create and add noise
+                    noise = torch.randn_like(p)
+                    noise *= sigma * p.norm() / noise.norm()
+                    p.add_(noise)
+
+            # generating the loss
+            perturbed_loss = loss_fn(model, dataloader, device) - base_loss 
+            perturbed_losses.append(perturbed_loss)
+
+            with torch.no_grad():
+                for p, snapshot_p in zip(params, snapshot_params):
+                    p.copy_(snapshot_p)
+
+        stats[sigma] = {
+            "mean": torch.tensor(perturbed_losses).mean().item(),
+            "std": torch.tensor(perturbed_losses).std().item(),
+        }
+
+    return stats
+
+if __name__ == "__main__":
+
+    sharpness_config = {
+        "model_name": "distilbert/distilbert-base-uncased",
+        "eval_set_size": 512, # arbitrary value
+        "batch_size": 32, # fixed batch size for evaluation
+        "seed": 42, # random number for reproducibility, what was used in training
+        "model_dir_adamw": "artifacts/adamw/20260911_110518/model",
+        "model_dir_muon": "artifacts/muon/20260911_134357/model",
+        "sigmas": [0.001, 0.005, 0.01, 0.02, 0.05], # suggested by Claude...
+        "n_draws": 10 # arbitrarily chosen
+    }
+
+    eval_dataloader = load_eval_set(sharpness_config)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model_adamw = load_model(sharpness_config["model_dir_adamw"], device)
+    model_muon = load_model(sharpness_config["model_dir_muon"], device)
+
+    hidden_params_adamw, nonhidden_params_adamw = split_params(model_adamw)
+    hidden_params_muon, nonhidden_params_muon = split_params(model_muon)
