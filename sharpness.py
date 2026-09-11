@@ -11,6 +11,7 @@ import torch
 from train import split_params
 
 import os
+import json
 
 # this function wont have too many comments because it's similar to load_data() in train.py
 def load_eval_set(sharpness_config):
@@ -119,9 +120,13 @@ if __name__ == "__main__":
     hidden_stats_muon = pertubation_sharpness(model_muon, hidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
     nonhidden_stats_muon = pertubation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
-    # saving the results
+    # saving the results as one json for plots.py compatibility
     os.makedirs(sharpness_config["output_dir"], exist_ok=True)
-    torch.save(hidden_stats_adamw, os.path.join(sharpness_config["output_dir"], "hidden_stats_adamw.pt"))
-    torch.save(nonhidden_stats_adamw, os.path.join(sharpness_config["output_dir"], "nonhidden_stats_adamw.pt"))
-    torch.save(hidden_stats_muon, os.path.join(sharpness_config["output_dir"], "hidden_stats_muon.pt"))
-    torch.save(nonhidden_stats_muon, os.path.join(sharpness_config["output_dir"], "nonhidden_stats_muon.pt"))
+    all_stats = {
+        "hidden_stats_adamw": hidden_stats_adamw,
+        "nonhidden_stats_adamw": nonhidden_stats_adamw,
+        "hidden_stats_muon": hidden_stats_muon,
+        "nonhidden_stats_muon": nonhidden_stats_muon,
+    }
+    with open(os.path.join(sharpness_config["output_dir"], "all_stats.json"), "w") as f:
+        json.dump(all_stats, f, indent=4)
