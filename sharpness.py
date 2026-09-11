@@ -92,6 +92,13 @@ def pertubation_sharpness(model, params, sharpness_config, dataloader, device, s
 
     return stats
 
+# this is to see the landscape of weight space in terms of the loss "altitude" from one trained model to another
+def interpolate(model_adamw, model_muon, train_loader, test_loader, device, ts):
+    params_adamw = list(model_adamw.parameters())
+    params_muon = list(model_muon.parameters())
+
+
+
 if __name__ == "__main__":
 
     sharpness_config = {
@@ -119,17 +126,21 @@ if __name__ == "__main__":
     # compute sharpness for both models
     hidden_stats_adamw = pertubation_sharpness(model_adamw, hidden_params_adamw, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
     nonhidden_stats_adamw = pertubation_sharpness(model_adamw, nonhidden_params_adamw, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    stats_adamw = pertubation_sharpness(model_adamw, list(model_adamw.parameters()), sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
     hidden_stats_muon = pertubation_sharpness(model_muon, hidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
     nonhidden_stats_muon = pertubation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    stats_muon = pertubation_sharpness(model_muon, list(model_muon.parameters()), sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
     # saving the results as one json for plots.py compatibility
     os.makedirs(sharpness_config["output_dir"], exist_ok=True)
     all_stats = {
         "hidden_stats_adamw": hidden_stats_adamw,
         "nonhidden_stats_adamw": nonhidden_stats_adamw,
+        "stats_adamw": stats_adamw,
         "hidden_stats_muon": hidden_stats_muon,
         "nonhidden_stats_muon": nonhidden_stats_muon,
+        "stats_muon": stats_muon
     }
     with open(os.path.join(sharpness_config["output_dir"], "results.json"), "w") as f:
         json.dump(all_stats, f)
