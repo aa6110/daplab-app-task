@@ -14,11 +14,15 @@ import os
 import json
 
 from tqdm import tqdm
+import numpy as np
 
 # this function wont have too many comments because it's similar to load_data() in train.py
-def load_eval_set(sharpness_config):
+def load_eval_set(sharpness_config, set):
     ds = load_dataset("stanfordnlp/sst2")
-    eval_set = ds["train"].shuffle(seed=sharpness_config["seed"]).select(range(sharpness_config["eval_set_size"])) # it's important to do for train because we are measuring the sharpness of the "valley" in the training landscape
+    if set == "train" :
+        eval_set = ds[set].shuffle(seed=sharpness_config["seed"]).select(range(sharpness_config["eval_set_size"])) # it's important to do for train because we are measuring the sharpness of the "valley" in the training landscape
+    else :
+        eval_set = ds[set].shuffle(seed=sharpness_config["seed"])
 
     tokenizer = AutoTokenizer.from_pretrained(sharpness_config["model_name"])
 
@@ -137,10 +141,11 @@ if __name__ == "__main__":
         "model_dir_muon": "artifacts/muon/20260911_134357/model",
         "sigmas": [0.001, 0.005, 0.01, 0.02, 0.05], # suggested by Claude, i didn't really know what values to put
         "n_draws": 10, # arbitrarily chosen; more draws means better std
-        "output_dir": "sharpness" # folder to save sharpness results
+        "output_dir": "sharpness", # folder to save sharpness results
+        "ts": np.linspace(-0.5, 1.5, 25) # trying to see both sides of the basins from a side view
     }
 
-    eval_dataloader = load_eval_set(sharpness_config)
+    train_eval_dataloader = load_eval_set(sharpness_config, "train")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -151,13 +156,16 @@ if __name__ == "__main__":
     hidden_params_muon, nonhidden_params_muon = split_params(model_muon)
 
     # compute sharpness for both models
-    hidden_stats_adamw = pertubation_sharpness(model_adamw, hidden_params_adamw, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    nonhidden_stats_adamw = pertubation_sharpness(model_adamw, nonhidden_params_adamw, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    all_stats_adamw = pertubation_sharpness(model_adamw, list(model_adamw.parameters()), sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    hidden_stats_adamw = pertubation_sharpness(model_adamw, hidden_params_adamw, sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    nonhidden_stats_adamw = pertubation_sharpness(model_adamw, nonhidden_params_adamw, sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    all_stats_adamw = pertubation_sharpness(model_adamw, list(model_adamw.parameters()), sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
-    hidden_stats_muon = pertubation_sharpness(model_muon, hidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    nonhidden_stats_muon = pertubation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    all_stats_muon = pertubation_sharpness(model_muon, list(model_muon.parameters()), sharpness_config, eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    hidden_stats_muon = pertubation_sharpness(model_muon, hidden_params_muon, sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    nonhidden_stats_muon = pertubation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    all_stats_muon = pertubation_sharpness(model_muon, list(model_muon.parameters()), sharpness_config, train_eval_dataloader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+
+    # interpolate (side view of landscape)
+    test_eval_loader = load_eval_set(sharpness_config, "test")
 
     # saving the results as one json for plots.py compatibility
     os.makedirs(sharpness_config["output_dir"], exist_ok=True)
