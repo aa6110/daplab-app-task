@@ -106,5 +106,5 @@ if __name__ == "__main__":
     # plotting hidden/nonhidden graphs
     plot_two_panels(runs_data, plot_config, "train_hidden_pretrain_distances", "train_nonhidden_pretrain_distances", "Pretrain Distances", "distance_pretrain_weights.png", "Steps", "Distance", smooth_flag=False)
     plot_two_panels(runs_data, plot_config, "train_hidden_grad_norms", "train_nonhidden_grad_norms", "Gradient Norms", "gradient_norms.png", "Steps", "Norm", smooth_flag=True)
-    plot_two_panels(runs_data, plot_config, "train_hidden_update_norms", "train_nonhidden_update_norms", "Update Norms", "update_norms.png", "Steps", "Norm", smooth_flag=False)
-    plot_two_panels(runs_data, plot_config, "train_hidden_weight_norms", "train_nonhidden_weight_norms", "Weight Norms", "weight_norms.png", "Steps", "Norm", smooth_flag=True)
+    plot_two_panels(runs_data, plot_config, "train_hidden_update_norms", "train_nonhidden_update_norms", "Update Norms", "update_norms.png", "Steps", "Norm", smooth_flag=True)
+    plot_two_panels(runs_data, plot_config, "train_hidden_weight_norms", "train_nonhidden_weight_norms", "Weight Norms", "weight_norms.png", "Steps", "Norm", smooth_flag=False)
