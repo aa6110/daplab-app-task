@@ -266,12 +266,12 @@ if __name__ == "__main__":
         "train_hidden_pretrain_distances": tr_hidden_pretrain_distances, # done
         "train_nonhidden_pretrain_distances": tr_nonhidden_pretrain_distances, # done
         "train_hidden_weight_norms": tr_hidden_weight_norms, # done
-        "train_nonhidden_weight_norms": tr_nonhidden_weight_norms,
-        "test_periodic_accuracy": tst_periodic_accs,
-        "test_periodic_loss": tst_periodic_losses,
+        "train_nonhidden_weight_norms": tr_nonhidden_weight_norms, # done
+        "test_periodic_accuracy": tst_periodic_accs, # done
+        "test_periodic_loss": tst_periodic_losses, # done
         "test_accuracy": tst_acc,
         "test_loss": tst_loss,
-        "global_steps": global_steps
+        "global_steps": global_steps # done
     }
 
     # getting the artiffact directory and making a subfolder per run based on time

@@ -14,8 +14,8 @@ def plot_pte(runs_data, plot_config): # periodic test eval
     for results, config, label in runs_data:
         pte_acc = results["test_periodic_accuracy"]
         pte_loss = results["test_periodic_loss"]
-        ax_h.plot(pte_acc, label=label)
-        ax_n.plot(pte_loss, label=label)
+        ax_h.plot(results["global_steps"], pte_acc, label=label)
+        ax_n.plot(results["global_steps"], pte_loss, label=label)
 
     ax_h.set_title("Periodic Test Accuracy")
     ax_h.set_xlabel("Steps")
