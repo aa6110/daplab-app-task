@@ -7,8 +7,29 @@ import os
 
 # this file is to construct the plots for measurement
 
-def plot_pte(): # periodic test eval
-    pass
+def plot_pte(runs_data, plot_config): # periodic test eval
+    # two figures, one for loss one for acc
+    fig, (ax_h, ax_n) = plt.subplots(1, 2,figsize=(12, 4))
+
+    for results, config, label in runs_data:
+        pte_acc = results["test_periodic_accuracy"]
+        pte_loss = results["test_periodic_loss"]
+        ax_h.plot(pte_acc, label=label)
+        ax_n.plot(pte_loss, label=label)
+
+    ax_h.set_title("Periodic Test Accuracy")
+    ax_h.set_xlabel("Steps")
+    ax_h.set_ylabel("Accuracy")
+    ax_h.legend()
+
+    ax_n.set_title("Periodic Test Loss")
+    ax_n.set_xlabel("Steps")
+    ax_n.set_ylabel("Loss")
+    ax_n.legend()
+
+    plt.tight_layout()
+    plt.savefig(f"{plot_config['output_dir']}/periodic_test_eval.png")
+    plt.close()
 
 def plot_re(runs_data, plots_config, smooth_flag): # rotational equilibrium or relative update
     # this one requires a bit of additional computation to determine the rotational equilibrium or relative update
