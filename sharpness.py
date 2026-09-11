@@ -97,7 +97,34 @@ def interpolate(model_adamw, model_muon, train_loader, test_loader, device, ts):
     params_adamw = list(model_adamw.parameters())
     params_muon = list(model_muon.parameters())
 
+    snapshot_params_adamw = [p.clone() for p in params_adamw]
+    snapshot_params_muon = [p.clone() for p in params_muon]
 
+    stats = {}
+
+    for t in ts:
+        train_loss = []
+        test_loss = []
+        with torch.no_grad():
+            for p_adamw, p_muon, snapshot_p_adamw, snapshot_p_muon in zip(params_adamw, params_muon, snapshot_params_adamw, snapshot_params_muon):
+                p_adamw.copy_(snapshot_p_adamw * (1 - t) + snapshot_p_muon * t)
+                p_muon.copy_(snapshot_p_adamw * (1 - t) + snapshot_p_muon * t)
+
+                # recording loss
+                loss_adamw = loss_fn(model_adamw, train_loader, device)
+                loss_muon = loss_fn(model_muon, train_loader, device)
+
+            for p_adamw, p_muon, snapshot_p_adamw, snapshot_p_muon in zip(params_adamw, params_muon, snapshot_params_adamw, snapshot_params_muon):
+                p_adamw.copy_(snapshot_p_adamw)
+                p_muon.copy_(snapshot_p_muon)
+
+        stats[t] = {
+            "t": t,
+            "train_loss": torch.tensor(train_loss).mean().item(),
+            "test_loss": torch.tensor(test_loss).mean().item()
+        }
+
+    return stats
 
 if __name__ == "__main__":
 
