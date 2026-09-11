@@ -13,6 +13,8 @@ from train import split_params
 import os
 import json
 
+import tqdm as tqdm
+
 # this function wont have too many comments because it's similar to load_data() in train.py
 def load_eval_set(sharpness_config):
     ds = load_dataset("stanfordnlp/sst2")
@@ -62,7 +64,7 @@ def pertubation_sharpness(model, params, sharpness_config, dataloader, device, s
 
     stats = {}
 
-    for sigma in sigmas:
+    for sigma in tqdm(sigmas, desc="PERTURBATION SHARPNESS"):
         perturbed_losses = []
         for i in range(n_draws):
             torch.manual_seed(sharpness_config["seed"] + i) # this is adding randomization and would be reproducible since in a loop
@@ -128,5 +130,5 @@ if __name__ == "__main__":
         "hidden_stats_muon": hidden_stats_muon,
         "nonhidden_stats_muon": nonhidden_stats_muon,
     }
-    with open(os.path.join(sharpness_config["output_dir"], "all_stats.json"), "w") as f:
+    with open(os.path.join(sharpness_config["output_dir"], "results.json"), "w") as f:
         json.dump(all_stats, f, indent=4)
