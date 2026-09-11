@@ -4,7 +4,7 @@ import argparse
 
 import json
 import os
-import pandas as pd
+import tabulate
 
 # this file is to construct the plots for measurement
 
@@ -88,20 +88,70 @@ def plot_two_panels(runs_data, plot_config, hidden_key, nonhidden_key, tilte, fi
     plt.savefig(f"{plot_config['output_dir']}/{filename}")
     plt.close()
 
-def summary_table(runs_data):
+def summary_table(runs_data, plot_config):
     table_data = []
+
+    # need best report vals
     for results, config, label in runs_data:
-        final_train_acc = results["train_accuracy"][-1] if results["train_accuracy"] else None
-        final_test_acc = results["test_accuracy"][-1] if results["test_accuracy"] else None
-        final_test_loss = results["test_loss"][-1] if results["test_loss"] else None
+        # getting best periodic test acc and step at best
+        best_periodic_test_acc = max(results["test_accuracy"]) if results["test_accuracy"] else None
+        step_at_best_periodic_test_acc = results["test_accuracy"].index(best_periodic_test_acc) if best_periodic_test_acc is not None else None
         table_data.append({
             "Label": label,
-            "Final Train Accuracy": final_train_acc,
-            "Final Test Accuracy": final_test_acc,
-            "Final Test Loss": final_test_loss
+            "Best Periodic Test Accuracy": best_periodic_test_acc,
+            "Step at Best Periodic Test Accuracy": step_at_best_periodic_test_acc
         })
-    df = pd.DataFrame(table_data)
-    print(df)
+
+        # getting the lowest periodic test loss and step at lowest
+        lowest_periodic_test_loss = min(results["test_loss"]) if results["test_loss"] else None
+        step_at_lowest_periodic_test_loss = results["test_loss"].index(lowest_periodic_test_loss) if lowest_periodic_test_loss is not None else None
+        table_data.append({
+            "Label": label,
+            "Lowest Periodic Test Loss": lowest_periodic_test_loss,
+            "Step at Lowest Periodic Test Loss": step_at_lowest_periodic_test_loss
+        })
+
+        # getting final test accuracy and step at final
+        final_periodic_test_acc = results["test_accuracy"][-1] if results["test_accuracy"] else None
+        step_at_final_periodic_test_acc = results["test_accuracy"].index(final_periodic_test_acc) if final_periodic_test_acc is not None else None
+        table_data.append({
+            "Label": label,
+            "Final Periodic Test Accuracy": final_periodic_test_acc,
+            "Step at Final Periodic Test Accuracy": step_at_final_periodic_test_acc
+        })
+
+        # final train acc
+        final_periodic_train_acc = results["train_accuracy"][-1] if results["train_accuracy"] else None
+        step_at_final_periodic_train_acc = results["train_accuracy"].index(final_periodic_train_acc) if final_periodic_train_acc is not None else None
+        table_data.append({
+            "Label": label,
+            "Final Periodic Train Accuracy": final_periodic_train_acc,
+            "Step at Final Periodic Train Accuracy": step_at_final_periodic_train_acc
+        })
+
+        # final hidden distance from pretrained
+        final_hidden_pretrain_dist = results["train_hidden_pretrain_distances"][-1] if results["train_hidden_pretrain_distances"] else None
+        step_at_final_hidden_pretrain_dist = results["train_hidden_pretrain_distances"].index(final_hidden_pretrain_dist) if final_hidden_pretrain_dist is not None else None
+        table_data.append({
+            "Label": label,
+            "Final Hidden Pretrain Distance": final_hidden_pretrain_dist,
+            "Step at Final Hidden Pretrain Distance": step_at_final_hidden_pretrain_dist
+        })
+
+        # final hidden weight norm
+        final_hidden_weight_norm = results["train_hidden_weight_norms"][-1] if results["train_hidden_weight_norms"] else None
+        step_at_final_hidden_weight_norm = results["train_hidden_weight_norms"].index(final_hidden_weight_norm) if final_hidden_weight_norm is not None else None
+        table_data.append({
+            "Label": label,
+            "Final Hidden Weight Norm": final_hidden_weight_norm,
+            "Step at Final Hidden Weight Norm": step_at_final_hidden_weight_norm
+        })
+
+    table_str = tabulate.tabulate(table_data, headers="keys", tablefmt="github")
+
+    # saving the summary table as a markdown file
+    with open(f"{plot_config['output_dir']}/summary_table.md", "w") as f:
+        f.write(table_str)
 
 def load_run(run_dir): 
     with open(f"{run_dir}/results.json", "r") as f:
@@ -146,3 +196,4 @@ if __name__ == "__main__":
     plot_two_panels(runs_data, plot_config, "train_hidden_weight_norms", "train_nonhidden_weight_norms", "Weight Norms", "weight_norms.png", "Steps", "Norm", smooth_flag=False)
     plot_re(runs_data, plot_config, smooth_flag=True)
     plot_pte(runs_data, plot_config)
+    summary_table(runs_data, plot_config)
