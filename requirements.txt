@@ -4,3 +4,4 @@ torch
 tqdm
 matplotlib
 git+https://github.com/KellerJordan/Muon@f98f1ca
+tabulate
