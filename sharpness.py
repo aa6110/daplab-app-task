@@ -106,17 +106,18 @@ def interpolate(model_adamw, model_muon, train_loader, test_loader, device, ts):
         train_loss = []
         test_loss = []
         with torch.no_grad():
-            for p_adamw, p_muon, snapshot_p_adamw, snapshot_p_muon in zip(params_adamw, params_muon, snapshot_params_adamw, snapshot_params_muon):
-                p_adamw.copy_(snapshot_p_adamw * (1 - t) + snapshot_p_muon * t)
-                p_muon.copy_(snapshot_p_adamw * (1 - t) + snapshot_p_muon * t)
+            for p_adamw, snapshot_p_adamw in zip(params_adamw, snapshot_params_adamw):
+                p_adamw.copy_(snapshot_p_adamw * (1 - t) + snapshot_p_adamw * t)
 
-                # recording loss
-                loss_adamw = loss_fn(model_adamw, train_loader, device)
-                loss_muon = loss_fn(model_muon, train_loader, device)
+            # recording loss
+            train_loss_adamw = loss_fn(model_adamw, train_loader, device)
+            test_loss_adamw = loss_fn(model_adamw, test_loader, device)
 
-            for p_adamw, p_muon, snapshot_p_adamw, snapshot_p_muon in zip(params_adamw, params_muon, snapshot_params_adamw, snapshot_params_muon):
+            train_loss.append(train_loss_adamw.item())
+            test_loss.append(test_loss_adamw.item())
+
+            for p_adamw, snapshot_p_adamw in zip(params_adamw, snapshot_params_adamw):
                 p_adamw.copy_(snapshot_p_adamw)
-                p_muon.copy_(snapshot_p_muon)
 
         stats[t] = {
             "t": t,
