@@ -101,7 +101,7 @@ if __name__ == "__main__":
         "model_dir_adamw": "artifacts/adamw/20260911_110518/model",
         "model_dir_muon": "artifacts/muon/20260911_134357/model",
         "sigmas": [0.001, 0.005, 0.01, 0.02, 0.05], # suggested by Claude...
-        "n_draws": 10, # arbitrarily chosen
+        "n_draws": 10, # arbitrarily chosen; more draws means better std
         "output_dir": "sharpness" # folder to save sharpness results
     }
 
