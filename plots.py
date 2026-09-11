@@ -4,6 +4,7 @@ import argparse
 
 import json
 import os
+import pandas as pd
 
 # this file is to construct the plots for measurement
 
@@ -87,11 +88,20 @@ def plot_two_panels(runs_data, plot_config, hidden_key, nonhidden_key, tilte, fi
     plt.savefig(f"{plot_config['output_dir']}/{filename}")
     plt.close()
 
-def plot_acc(): # plotting accuracy (can be used for training or testing)
-    pass
-
-def plot_le(): # plotting loss/epoch
-    pass
+def summary_table(runs_data):
+    table_data = []
+    for results, config, label in runs_data:
+        final_train_acc = results["train_accuracy"][-1] if results["train_accuracy"] else None
+        final_test_acc = results["test_accuracy"][-1] if results["test_accuracy"] else None
+        final_test_loss = results["test_loss"][-1] if results["test_loss"] else None
+        table_data.append({
+            "Label": label,
+            "Final Train Accuracy": final_train_acc,
+            "Final Test Accuracy": final_test_acc,
+            "Final Test Loss": final_test_loss
+        })
+    df = pd.DataFrame(table_data)
+    print(df)
 
 def load_run(run_dir): 
     with open(f"{run_dir}/results.json", "r") as f:
@@ -135,3 +145,4 @@ if __name__ == "__main__":
     plot_two_panels(runs_data, plot_config, "train_hidden_update_norms", "train_nonhidden_update_norms", "Update Norms", "update_norms.png", "Steps", "Norm", smooth_flag=True)
     plot_two_panels(runs_data, plot_config, "train_hidden_weight_norms", "train_nonhidden_weight_norms", "Weight Norms", "weight_norms.png", "Steps", "Norm", smooth_flag=False)
     plot_re(runs_data, plot_config, smooth_flag=True)
+    plot_pte(runs_data, plot_config)
