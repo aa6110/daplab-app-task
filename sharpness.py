@@ -165,6 +165,7 @@ if __name__ == "__main__":
 
     # interpolate (side view of landscape)
     test_eval_loader = load_eval_set(sharpness_config, "validation")
+    interpolate_stats = interpolate(model_adamw, model_muon, test_eval_loader, sharpness_config["ts"], device)
 
     # saving the results as one json for plots.py compatibility
     os.makedirs(sharpness_config["output_dir"], exist_ok=True)
@@ -174,7 +175,8 @@ if __name__ == "__main__":
         "all_stats_adamw": all_stats_adamw,
         "hidden_stats_muon": hidden_stats_muon,
         "nonhidden_stats_muon": nonhidden_stats_muon,
-        "all_stats_muon": all_stats_muon
+        "all_stats_muon": all_stats_muon,
+        "interpolate_stats": interpolate_stats
     }
     with open(os.path.join(sharpness_config["output_dir"], "results.json"), "w") as f:
         json.dump(all_stats, f)
