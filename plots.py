@@ -154,7 +154,7 @@ if __name__ == "__main__":
     # hyperparameters for plotting
     plot_config = {
         "w": 50, # this is the width for the smoothening for loss/steps
-        "output_dir": "figures" # where to output the graphs
+        "output_dir": "figures/compare" # where to output the graphs
     }
 
     # arguments must be passed so that the plots can be stacked, this is for clean comparisons for sweeps, or for optimizer differences
