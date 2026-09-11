@@ -106,7 +106,7 @@ def interpolate(model_adamw, model_muon, train_loader, test_loader, device, ts):
     train_loss = []
     test_loss = []
 
-    for t in ts:
+    for t in tqdm(ts, desc="INTERPOLATION"):
         with torch.no_grad():
             for p_adamw, snapshot_p_adamw, snapshot_p_muon in zip(params_adamw, snapshot_params_adamw, snapshot_params_muon):
                 p_adamw.copy_(snapshot_p_adamw * (1 - t) + snapshot_p_muon * t)
