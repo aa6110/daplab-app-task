@@ -96,12 +96,12 @@ def summary_table(runs_data, plot_config):
         # getting best periodic test acc and step at best
         best_periodic_test_acc = max(results["test_periodic_accuracy"]) if results["test_periodic_accuracy"] else None
         bpta_idx = results["test_periodic_accuracy"].index(best_periodic_test_acc)
-        step_at_best_periodic_test_acc = results["test_periodic_accuracy"][bpta_idx] if best_periodic_test_acc is not None else None
+        step_at_best_periodic_test_acc = results["global_steps"][bpta_idx] if best_periodic_test_acc is not None else None
 
         # getting the lowest periodic test loss and step at lowest
         lowest_periodic_test_loss = min(results["test_periodic_loss"]) if results["test_periodic_loss"] else None
         lptl_idx = results["test_periodic_loss"].index(lowest_periodic_test_loss)
-        step_at_lowest_periodic_test_loss = results["test_periodic_loss"][lptl_idx] if lowest_periodic_test_loss is not None else None   
+        step_at_lowest_periodic_test_loss = results["global_steps"][lptl_idx] if lowest_periodic_test_loss is not None else None   
 
         # getting final test accuracy and step at final
         final_periodic_test_acc = results["test_accuracy"][-1] if results["test_accuracy"] else None
