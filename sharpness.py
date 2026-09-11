@@ -13,7 +13,7 @@ from train import split_params
 import os
 import json
 
-import tqdm as tqdm
+from tqdm import tqdm
 
 # this function wont have too many comments because it's similar to load_data() in train.py
 def load_eval_set(sharpness_config):
