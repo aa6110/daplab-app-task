@@ -16,6 +16,8 @@ import json
 from tqdm import tqdm
 import numpy as np
 
+from train import group_norm
+
 # this function wont have too many comments because it's similar to load_data() in train.py
 def load_eval_set(sharpness_config, split):
     ds = load_dataset("stanfordnlp/sst2")
@@ -150,19 +152,19 @@ def hvp(model, params, dataloader, device, v): # in all honesty, i didn't have t
 def top_eigenvalue(model, params, dataloader, device, n_iters, seed): # this fucntion is also hard to understand mathematically
     torch.manual_seed(seed)
     v = [torch.randn_like(p) for p in params]
-    v = [vi / torch.norm(vi) for vi in v]
+    v = [vi / group_norm(v) for vi in v]
 
     lam_prev = None
 
     for i in range(n_iters):
         Hv = hvp(model, params, dataloader, device, v)
         lam = sum(torch.sum(v_i * Hv_i) for v_i, Hv_i in zip(v, Hv))
-        v = [Hv_i / torch.norm(Hv_i) for Hv_i in Hv]
-        if lam_prev is not None and torch.abs(lam - lam_prev) < 1e-6:
+        v = [Hv_i / group_norm(Hv) for Hv_i in Hv]
+        if lam_prev is not None and torch.abs(lam - lam_prev) < 1e-3:
             break
         lam_prev = lam
 
-    return lam
+    return lam.item()
 
 if __name__ == "__main__":
 
