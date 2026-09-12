@@ -174,18 +174,23 @@ def top_eigenvalue(model, params, dataloader, device, n_iters, seed): # this fuc
 
 # plotting functions for visualizations
 
-def plot_perturbation(sharpness_config, stats):
+def plot_perturbation(sharpness_config, all_stats):
 
-    for key, values in stats.items():
+    for key, values in all_stats.items():
+        if "_stats_" not in key:
+            continue
         sigmas = [float(s) for s in values]            # keys are strings after JSON
         means  = [values[s]["mean"] for s in values]
         stds   = [values[s]["std"]  for s in values]
         plt.errorbar(sigmas, means, yerr=stds, label=key)
     plt.xlabel("Perturbation Index")
+    plt.xscale("log")
     plt.ylabel("Sharpness")
+    plt.yscale("log")
     plt.title("Perturbation Sharpness")
     plt.legend()
     plt.savefig(f"{sharpness_config['output_dir']}/perturbation_sharpness.png")
+    plt.close()
 
 if __name__ == "__main__":
 
@@ -244,7 +249,7 @@ if __name__ == "__main__":
         "hidden_stats_muon": hidden_stats_muon,
         "nonhidden_stats_muon": nonhidden_stats_muon,
         "all_stats_muon": all_stats_muon,
-        "interpolate_stats": interpolate_stats,
+        "interpolate": interpolate_stats,
         "power_method_hidden_adamw": power_method_hidden_adamw,
         "power_method_nonhidden_adamw": power_method_nonhidden_adamw,
         "power_method_all_adamw": power_method_all_adamw,
