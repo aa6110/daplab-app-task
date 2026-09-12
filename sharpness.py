@@ -148,7 +148,21 @@ def hvp(model, params, dataloader, device, v): # in all honesty, i didn't have t
 
 # to get the greatest descent slop surrounding the weights of the models
 def top_eigenvalue(model, params, dataloader, device, n_iters, seed): # this fucntion is also hard to understand mathematically
+    torch.manual_seed(seed)
+    v = [torch.randn_like(p) for p in params]
+    v = [vi / torch.norm(vi) for vi in v]
 
+    lam_prev = None
+
+    for i in range(n_iters):
+        Hv = hvp(model, params, dataloader, device, v)
+        lam = sum(torch.sum(v_i * Hv_i) for v_i, Hv_i in zip(v, Hv))
+        v = [Hv_i / torch.norm(Hv_i) for Hv_i in Hv]
+        if lam_prev is not None and torch.abs(lam - lam_prev) < 1e-6:
+            break
+        lam_prev = lam
+
+    return lam
 
 if __name__ == "__main__":
 
