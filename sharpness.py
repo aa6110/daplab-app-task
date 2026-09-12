@@ -130,20 +130,22 @@ def interpolate(model_adamw, model_muon, train_loader, test_loader, device, ts):
     return stats
 
 # Hessian-vector product helper function
-def hpv(model, params, dataloader, device, v): # in all honesty, i didn't have too much time to read the paper, but i had the help of claude to implement the math for this function
-    Hv = [np.zeros_like(p) for p in params]
+def hvp(model, params, dataloader, device, v): # in all honesty, i didn't have too much time to read the paper, but i had the help of claude to implement the math for this function
+    Hv = [torch.zeros_like(p) for p in params]
 
     for batch in dataloader:
-        loss = model(**batch).loss
+        batch = {k: v.to(device) for k, v in batch.items()}
+        pred = model(**batch)
+        loss = pred.loss
         g = torch.autograd.grad(loss, params, create_graph=True) # the gradient where the graph is kept
-        gv = [torch.sum(g_i * v_i) for g_i, v_i in zip(g, v)] # scalar
+        gv = sum(torch.sum(g_i * v_i) for g_i, v_i in zip(g, v)) # scalar
         hv = torch.autograd.grad(gv, params)
-        Hv = [h_i.detach().cpu().numpy() for h_i in hv]
+        Hv += [h_i.detach() for h_i in hv]
 
     return Hv
 
 # to get the greatest descent slop surrounding the weights of the models
-def top_eigenvalue(model, params, dataloader, device, n_iters, seed):
+def top_eigenvalue(model, params, dataloader, device, n_iters, seed): # this fucntion is also hard to understand mathematically
 
 
 if __name__ == "__main__":
