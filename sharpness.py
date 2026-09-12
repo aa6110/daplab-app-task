@@ -134,13 +134,14 @@ def hvp(model, params, dataloader, device, v): # in all honesty, i didn't have t
     Hv = [torch.zeros_like(p) for p in params]
 
     for batch in dataloader:
-        batch = {k: v.to(device) for k, v in batch.items()}
+        batch = {k: val.to(device) for k, val in batch.items()}
         pred = model(**batch)
         loss = pred.loss
         g = torch.autograd.grad(loss, params, create_graph=True) # the gradient where the graph is kept
         gv = sum(torch.sum(g_i * v_i) for g_i, v_i in zip(g, v)) # scalar
         hv = torch.autograd.grad(gv, params)
-        Hv += [h_i.detach() for h_i in hv]
+        Hv = [a + b.detach() for a, b in zip(Hv, hv)]
+        Hv /= len(dataloader)
 
     return Hv
 
