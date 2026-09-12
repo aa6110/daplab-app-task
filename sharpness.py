@@ -158,7 +158,7 @@ def top_eigenvalue(model, params, dataloader, device, n_iters, seed): # this fuc
     lam_prev = None
     lams = []
 
-    for i in range(n_iters):
+    for i in tqdm(range(n_iters), desc="POWER METHOD"):
         Hv = hvp(model, params, dataloader, device, v)
         lam = sum(torch.sum(v_i * Hv_i) for v_i, Hv_i in zip(v, Hv))
         lams.append(lam.item())
@@ -183,7 +183,7 @@ if __name__ == "__main__":
         "n_draws": 10, # arbitrarily chosen; more draws means better std
         "output_dir": "sharpness", # folder to save sharpness results
         "ts": np.linspace(-0.5, 1.5, 25), # trying to see both sides of the basins from a side view
-        "n_iters": 100, # number of iterations for power method
+        "n_iters": 20, # number of iterations for power method
     }
 
     train_eval_loader = load_eval_set(sharpness_config, "train")
