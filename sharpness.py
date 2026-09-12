@@ -182,7 +182,8 @@ if __name__ == "__main__":
         "sigmas": [0.001, 0.005, 0.01, 0.02, 0.05], # suggested by Claude, i didn't really know what values to put
         "n_draws": 10, # arbitrarily chosen; more draws means better std
         "output_dir": "sharpness", # folder to save sharpness results
-        "ts": np.linspace(-0.5, 1.5, 25) # trying to see both sides of the basins from a side view
+        "ts": np.linspace(-0.5, 1.5, 25), # trying to see both sides of the basins from a side view
+        "n_iters": 100, # number of iterations for power method
     }
 
     train_eval_loader = load_eval_set(sharpness_config, "train")
@@ -208,6 +209,15 @@ if __name__ == "__main__":
     test_eval_loader = load_eval_set(sharpness_config, "validation")
     interpolate_stats = interpolate(model_adamw, model_muon, train_eval_loader, test_eval_loader,  device, sharpness_config["ts"])
 
+    # power method
+    power_method_hidden_adamw = top_eigenvalue(model_adamw, hidden_params_adamw, train_eval_loader, device, sharpness_config["n_iters"], sharpness_config["seed"])
+    power_method_nonhidden_adamw = top_eigenvalue(model_adamw, nonhidden_params_adamw, train_eval_loader, device, sharpness_config["n_iters"], sharpness_config["seed"])
+    power_method_all_adamw = top_eigenvalue(model_adamw, list(model_adamw.parameters()), train_eval_loader, device, sharpness_config["n_iters"], sharpness_config["seed"])
+
+    power_method_hidden_muon = top_eigenvalue(model_muon, hidden_params_muon, train_eval_loader, device, sharpness_config["n_iters"], sharpness_config["seed"])
+    power_method_nonhidden_muon = top_eigenvalue(model_muon, nonhidden_params_muon, train_eval_loader, device, sharpness_config["n_iters"], sharpness_config["seed"])
+    power_method_all_muon = top_eigenvalue(model_muon, list(model_muon.parameters()), train_eval_loader, device, sharpness_config["n_iters"], sharpness_config["seed"])
+
     # saving the results as one json for plots.py compatibility
     os.makedirs(sharpness_config["output_dir"], exist_ok=True)
     all_stats = {
@@ -217,7 +227,13 @@ if __name__ == "__main__":
         "hidden_stats_muon": hidden_stats_muon,
         "nonhidden_stats_muon": nonhidden_stats_muon,
         "all_stats_muon": all_stats_muon,
-        "interpolate_stats": interpolate_stats
+        "interpolate_stats": interpolate_stats,
+        "power_method_hidden_adamw": power_method_hidden_adamw,
+        "power_method_nonhidden_adamw": power_method_nonhidden_adamw,
+        "power_method_all_adamw": power_method_all_adamw,
+        "power_method_hidden_muon": power_method_hidden_muon,
+        "power_method_nonhidden_muon": power_method_nonhidden_muon,
+        "power_method_all_muon": power_method_all_muon
     }
     with open(os.path.join(sharpness_config["output_dir"], "results.json"), "w") as f:
         json.dump(all_stats, f)
