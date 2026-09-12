@@ -177,7 +177,10 @@ def top_eigenvalue(model, params, dataloader, device, n_iters, seed): # this fuc
 def plot_perturbation(sharpness_config, stats):
 
     for key, values in stats.items():
-        plt.errorbar(range(len(values["mean"])), values["mean"], yerr=values["std"], label=key)
+        sigmas = [float(s) for s in values]            # keys are strings after JSON
+        means  = [values[s]["mean"] for s in values]
+        stds   = [values[s]["std"]  for s in values]
+        plt.errorbar(sigmas, means, yerr=stds, label=key)
     plt.xlabel("Perturbation Index")
     plt.ylabel("Sharpness")
     plt.title("Perturbation Sharpness")
