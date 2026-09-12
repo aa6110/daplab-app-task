@@ -141,7 +141,8 @@ def hvp(model, params, dataloader, device, v): # in all honesty, i didn't have t
         gv = sum(torch.sum(g_i * v_i) for g_i, v_i in zip(g, v)) # scalar
         hv = torch.autograd.grad(gv, params)
         Hv = [a + b.detach() for a, b in zip(Hv, hv)]
-        Hv /= len(dataloader)
+
+    Hv = [h / len(dataloader) for h in Hv]
 
     return Hv
 
