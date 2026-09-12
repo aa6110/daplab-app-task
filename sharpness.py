@@ -161,12 +161,12 @@ def top_eigenvalue(model, params, dataloader, device, n_iters, seed): # this fuc
     for i in range(n_iters):
         Hv = hvp(model, params, dataloader, device, v)
         lam = sum(torch.sum(v_i * Hv_i) for v_i, Hv_i in zip(v, Hv))
+        lams.append(lam.item())
         norm_Hv = group_norm(Hv)
         v = [Hv_i / norm_Hv for Hv_i in Hv]
         if lam_prev is not None and torch.abs(lam - lam_prev) < 1e-3:
             break
         lam_prev = lam
-        lams.append(lam.item())
 
     return lams
 
