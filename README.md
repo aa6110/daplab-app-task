@@ -21,7 +21,7 @@ For sharpness, 3 different methods were used.
 
 1. **perturbation_sharpness.png** This metric was inspired by* https://arxiv.org/pdf/1609.04836. This metric looks around the two different post-trained model weights in the weight space to see the steepness of the landscape around where the weights ended up. It's like throwing a ball and seeing whether the hole that it fell into was wide or thin. The `sigmas` and `n_draws` metrics in `sharpness.py` affect the nudge distance and accuracy of std. In addition to this, noise is scaled to each parameter's own normalization, otherwise sharpness depends on weight scale.
 2. **interpolation.png** This is a very important graph for this experiment, as it shows whether bot answers are in the same basin, and how steep the basin(s) is/are. This is a standard metric to view the landscape between the two models' weights. Currently, `"ts": np.linspace(-0.5, 1.5, 25)` in `sharpness.py` for this metric, which means that if you were to picture a number line, where the AdamW model is at 0 and the Muon model is at 1, then this metric is covering the landscape in a line from point -0.5 to 1.5, covering an extra 50% on both ends to see the landscape before the AdamW model and after the Muon model.
-3. `top_eigenvalue()` in `sharpness.py` is the last method of evaluation. It takes the second derivative of the loss and measures the curvature to see where the curve is most sharp. `"n_iters": 20` is the metric that matters here, which means that it tried to backpropagate 20 times to reach the sharpest loss. 
+3. `top_eigenvalue()` in `sharpness.py` is the last method of evaluation. It takes the second derivative of the loss and measures the curvature to see where the curve is most sharp. `"n_iters": 20` is the metric that matters here. It means the Hessian matrix nudges a vector v to the largest eigenvalue.
 
 There was no graph for the `top_eigenvalue()` method. Instead there was a table. 
 
@@ -63,11 +63,11 @@ This is an image of the main differences between the optimizers for periodic tes
 
 ![alt text](figures/compare/rotational_equilibrium.png)
 
-Here you can see that by learning less, Muon is able to perform slightly better, since the model is already pre-trained and more training would overfit, which is what AdamW does.
+Muon reaches a lower training loss, and there is a larger generalization gap which means that it is overfitting harder than AdamW. 
 
 ![alt text](sharpness/interpolation.png)
 
-This graph shows the landscape surrounding the two models' weight parameters. It can seen that in the train loss, there is a dip towards the Muon section, which explains the results of Meaon having a flatter mean curvature but sharper top eigen value and interpolation cliff.
+This graph shows the landscape surrounding the two models' weight parameters. It can seen that in the train loss, there is a dip towards the Muon section, which shows that there is no barrier in the basin, AdamW is in a more shallow region, and Muon is in a deeper region (in train).
 
 ## Setup
 
@@ -106,7 +106,14 @@ python plots.py artifacts/adamw/20260911_110518 artifacts/muon/20260911_121342
 
 **MAKE SURE THAT YOU SELECT THE FOLDER, AND THAT THEY ARE BOTH DIFFERENT. THIS IS IMPORTANT TO GENERATE THE PLOTS THAT COMPARE THE RESULTS OF THE TWO TRAINED MODELS. DO NOT COPY AND PASTE THIS AND EXPECT IT TO WORK. IT WILL NEVER.** 
 
-Now that you have your generated plots, take those same relative paths and paste them in lines `180` and `181`. **MATCH THE MODEL TO THE NAME OF THE KEY IN THE DICTIONARY**. Then run the following command:
+Now that you have your generated plots, you have to change the directories of the AdamW and Muon models in the config file. Make sure it looks like something below, but with your own models. You have to select the `model/` folder, otherwise it won't work:
+
+```
+"model_dir_adamw": "artifacts/adamw/20260911_110518/model",
+"model_dir_muon": "artifacts/muon/20260911_134357/model",
+```
+
+Then run the following command:
 
 ```
 python sharpness.py
