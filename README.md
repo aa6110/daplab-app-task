@@ -1,5 +1,7 @@
 ## Diagnosing Optimization During Fine-Tuning
 
+LINK TO [Report (PDF)](Diagnosing_Optimization_During_Fine_Tuning.pdf)
+
 ### DISCLAIMER
 All but `plot_sharpness.py` is hand-coded. This is due to the fact that the author is not as familiar with `matplotlib`. Even this `README.md` is hand-written. However, `Claude Fable 5.1 Medium` was used as a verbal assistant to guide the author to plan, find papers, and to understand the logic and math behind some of the functions. In addition, it was used to code `plot_sharpness.py`. **FOR SETUP INSTRUCTIONS, SCROLL TO THE BOTTOM.**
 
