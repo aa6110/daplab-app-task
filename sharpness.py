@@ -152,19 +152,23 @@ def hvp(model, params, dataloader, device, v): # in all honesty, i didn't have t
 def top_eigenvalue(model, params, dataloader, device, n_iters, seed): # this fucntion is also hard to understand mathematically
     torch.manual_seed(seed)
     v = [torch.randn_like(p) for p in params]
-    v = [vi / group_norm(v) for vi in v]
+    norm_v = group_norm(v)
+    v = [vi / norm_v for vi in v]
 
     lam_prev = None
+    lams = []
 
     for i in range(n_iters):
         Hv = hvp(model, params, dataloader, device, v)
         lam = sum(torch.sum(v_i * Hv_i) for v_i, Hv_i in zip(v, Hv))
-        v = [Hv_i / group_norm(Hv) for Hv_i in Hv]
+        norm_Hv = group_norm(Hv)
+        v = [Hv_i / norm_Hv for Hv_i in Hv]
         if lam_prev is not None and torch.abs(lam - lam_prev) < 1e-3:
             break
         lam_prev = lam
+        lams.append(lam.item())
 
-    return lam.item()
+    return lams
 
 if __name__ == "__main__":
 
