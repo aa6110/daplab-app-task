@@ -41,7 +41,7 @@ def load_eval_set(sharpness_config, split):
     return eval_dataloader
 
 def load_model(model_dir, device):
-    model = AutoModelForSequenceClassification.from_pretrained(model_dir)
+    model = AutoModelForSequenceClassification.from_pretrained(model_dir, attn_implementation="eager") # needed for more backward passes
     model.to(device)
     model.eval()
     return model
