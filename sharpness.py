@@ -18,8 +18,6 @@ import numpy as np
 
 from train import group_norm
 
-import matplotlib.pyplot as plt
-
 # this function wont have too many comments because it's similar to load_data() in train.py
 def load_eval_set(sharpness_config, split):
     ds = load_dataset("stanfordnlp/sst2")
@@ -171,26 +169,6 @@ def top_eigenvalue(model, params, dataloader, device, n_iters, seed): # this fuc
         lam_prev = lam
 
     return lams
-
-# plotting functions for visualizations
-
-def plot_perturbation(sharpness_config, all_stats):
-
-    for key, values in all_stats.items():
-        if "_stats_" not in key:
-            continue
-        sigmas = [float(s) for s in values]            # keys are strings after JSON
-        means  = [values[s]["mean"] for s in values]
-        stds   = [values[s]["std"]  for s in values]
-        plt.errorbar(sigmas, means, yerr=stds, label=key)
-    plt.xlabel("Relative Perturbation")
-    plt.xscale("log")
-    plt.ylabel("Loss Increase")
-    plt.yscale("log")
-    plt.title("Relative Perturbation vs Loss Increase")
-    plt.legend()
-    plt.savefig(f"{sharpness_config['output_dir']}/perturbation_sharpness.png")
-    plt.close()
 
 if __name__ == "__main__":
 
