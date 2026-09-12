@@ -18,6 +18,8 @@ import numpy as np
 
 from train import group_norm
 
+import matplotlib.pyplot as plt
+
 # this function wont have too many comments because it's similar to load_data() in train.py
 def load_eval_set(sharpness_config, split):
     ds = load_dataset("stanfordnlp/sst2")
@@ -62,7 +64,7 @@ def loss_fn(model, dataloader, device):
     return losses / num_batches
 
 # this function is to see the areas around the two models in weight space for their losses to identify sharpness levels
-def pertubation_sharpness(model, params, sharpness_config, dataloader, device, sigmas, n_draws):
+def perturbation_sharpness(model, params, sharpness_config, dataloader, device, sigmas, n_draws):
     base_loss = loss_fn(model, dataloader, device)
 
     snapshot_params = [p.clone() for p in params]
@@ -170,6 +172,18 @@ def top_eigenvalue(model, params, dataloader, device, n_iters, seed): # this fuc
 
     return lams
 
+# plotting functions for visualizations
+
+def plot_perturbation(sharpness_config, stats):
+
+    for key, values in stats.items():
+        plt.errorbar(range(len(values["mean"])), values["mean"], yerr=values["std"], label=key)
+    plt.xlabel("Perturbation Index")
+    plt.ylabel("Sharpness")
+    plt.title("Perturbation Sharpness")
+    plt.legend()
+    plt.savefig(f"{sharpness_config['output_dir']}/perturbation_sharpness.png")
+
 if __name__ == "__main__":
 
     sharpness_config = {
@@ -197,13 +211,13 @@ if __name__ == "__main__":
     hidden_params_muon, nonhidden_params_muon = split_params(model_muon)
 
     # compute sharpness for both models
-    hidden_stats_adamw = pertubation_sharpness(model_adamw, hidden_params_adamw, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    nonhidden_stats_adamw = pertubation_sharpness(model_adamw, nonhidden_params_adamw, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    all_stats_adamw = pertubation_sharpness(model_adamw, list(model_adamw.parameters()), sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    hidden_stats_adamw = perturbation_sharpness(model_adamw, hidden_params_adamw, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    nonhidden_stats_adamw = perturbation_sharpness(model_adamw, nonhidden_params_adamw, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    all_stats_adamw = perturbation_sharpness(model_adamw, list(model_adamw.parameters()), sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
-    hidden_stats_muon = pertubation_sharpness(model_muon, hidden_params_muon, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    nonhidden_stats_muon = pertubation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
-    all_stats_muon = pertubation_sharpness(model_muon, list(model_muon.parameters()), sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    hidden_stats_muon = perturbation_sharpness(model_muon, hidden_params_muon, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    nonhidden_stats_muon = perturbation_sharpness(model_muon, nonhidden_params_muon, sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
+    all_stats_muon = perturbation_sharpness(model_muon, list(model_muon.parameters()), sharpness_config, train_eval_loader, device, sharpness_config["sigmas"], sharpness_config["n_draws"])
 
     # interpolate (side view of landscape)
     test_eval_loader = load_eval_set(sharpness_config, "validation")
