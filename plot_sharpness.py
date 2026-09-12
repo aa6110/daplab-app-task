@@ -4,10 +4,8 @@ import json
 import os
 from tabulate import tabulate
 
-
 GROUPS = ["hidden", "nonhidden", "all"]
 OPTS = {"adamw": ("AdamW", "tab:orange"), "muon": ("Muon", "tab:blue")}
-
 
 def plot_perturbation(cfg, all_stats):
     """Loss increase vs relative perturbation size, one panel per parameter group.
@@ -22,7 +20,7 @@ def plot_perturbation(cfg, all_stats):
                     sigmas.append(float(s))
                     means.append(v["mean"])
                     ses.append(v["std"] / np.sqrt(len(v["losses"])))
-            ax.errorbar(sigmas, means, yerr=ses, marker="o", capsize=3, label=label, color=color)
+            ax.errorbar(sigmas, means, yerr=ses, capsize=3, label=label, color=color)
         ax.set_xscale("log")
         ax.set_yscale("log")
         ax.set_title(f"{group} parameters")
@@ -34,16 +32,15 @@ def plot_perturbation(cfg, all_stats):
     plt.savefig(f"{cfg['output_dir']}/perturbation_sharpness.png", dpi=150)
     plt.close(fig)
 
-
 def plot_interpolation(cfg, all_stats):
     """Loss along the straight line θ_A + t(θ_M − θ_A). t=0 is AdamW, t=1 is Muon."""
     it = all_stats["interpolate_stats"]
     t = np.array(it["t"])
     fig, (ax_tr, ax_te) = plt.subplots(1, 2, figsize=(12, 4))
-    ax_tr.plot(t, it["train_loss"], marker="o", color="tab:green")
+    ax_tr.plot(t, it["train_loss"], color="tab:green")
     ax_tr.set_yscale("log")
     ax_tr.set_title("Train loss (512-sentence subset)")
-    ax_te.plot(t, it["test_loss"], marker="o", color="tab:red")
+    ax_te.plot(t, it["test_loss"], color="tab:red")
     ax_te.set_title("Test loss (full validation set)")
     for ax in (ax_tr, ax_te):
         ax.axvline(0, color="tab:orange", linestyle="--", label="AdamW (t=0)")
@@ -55,7 +52,6 @@ def plot_interpolation(cfg, all_stats):
     plt.tight_layout()
     plt.savefig(f"{cfg['output_dir']}/interpolation.png", dpi=150)
     plt.close(fig)
-
 
 def summary_table(cfg, all_stats, sigma="0.05"):
     """One row per parameter group: top Hessian eigenvalue and perturbation loss rise
@@ -96,8 +92,6 @@ def summary_table(cfg, all_stats, sigma="0.05"):
     md += "\n\n## Generalization gap along the interpolation line\n\n" + tabulate(gap_rows, headers="keys", tablefmt="github")
     with open(f"{cfg['output_dir']}/summary_table.md", "w") as f:
         f.write(md + "\n")
-    print(md)
-
 
 if __name__ == "__main__":
     cfg = {"output_dir": "sharpness"}
