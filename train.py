@@ -190,7 +190,7 @@ if __name__ == "__main__":
         "adamw_eps": 1e-8, # default epsilon value for AdamW optimizer
         "adamw_betas": (0.9, 0.999), # default beta values for AdamW optimizer 
         "adamw_wd": 0.01, # default weight decay for AdamW optimizer
-        "muon": True, # toggle for incorporating muon for 2d optimization
+        "muon": False, # toggle for incorporating muon for 2d optimization
         "muon_lr": 2e-4, # sweeped and changed from the initial value used in the Muon blog
         "muon_momentum": 0.95, # default momentum value for Muon optimizer
         "muon_wd": 0.01, # default weight decay for Muon optimizer
